@@ -36,16 +36,24 @@ const readFile = (path, file) => new Promise((res, rej) => {
     })
 })
 
+const mapKeywords = data => {
+    let dat = data.split(" ")
+	let newArr = {}
+
+	dat.forEach(word => newArr[word] = newArr[word] === undefined ? 1 : ++newArr[word])
+	return newArr
+}
+
 async function getDataFromSource(net, source, output) {
     const files = await readDir(source)
 	const data = await Promise.all(files.map(async fileName => await readFile(source, fileName)))
-	const mapped = data.map(datum => { return { input: {datum}, output } })
+	const mapped = data.map(datum => { return { input: {datum: mapKeywords(datum)}, output } })
     net.train(mapped)
 	return net
 }
 
 getDataFromSource(net, __dirname + '/sources/php', {php : 1}).then(net => {
-  let output = net.run({datum: "php"})
+  let output = net.run({datum: mapKeywords("php")})
 
   console.log(output)
 })

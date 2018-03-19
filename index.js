@@ -37,27 +37,42 @@ const readFile = (path, file) => new Promise((res, rej) => {
 })
 
 const mapKeywords = data => {
-    let dat = data.split(" ")
-    let newArr = {}
+    let dat = data.replace(/\*(.|\n)*?\*/, '').split(" ")
+    let count = {}
+	let frequency = {}
 
-    dat.forEach(word => newArr[word] = newArr[word] === undefined ? 1 : ++newArr[word])
+    dat.forEach(word => count[word] = count[word] === undefined ? 1 : ++count[word])
 
-    Object.keys(dat).forEach(key => {
-        newArr[key] = newArr[key] / dat.length
+    Object.keys(count).forEach(key => {
+        frequency[key] = count[key] / dat.length
     })
-    return newArr
+
+    return frequency
 }
 
 async function getDataFromSource(net, source, output) {
     const files = await readDir(source)
     const data = await Promise.all(files.map(async fileName => await readFile(source, fileName)))
-    const mapped = data.map(datum => { return { input: {datum: mapKeywords(datum)}, output } })
+    const mapped = data.map(datum => { return { input: mapKeywords(datum), output } })
+	//console.log(mapped.map(d => d.input))
     net.train(mapped)
     return net
 }
 
-getDataFromSource(net, __dirname + '/sources/php', {php : 1}).then(net => {
-  let output = net.run({datum: mapKeywords("php")})
+//getDataFromSource(net, __dirname + '/sources/php2', {php : 1}).then(net => {
+//  let output = net.run(mapKeywords("node"))
+//
+//  console.log(output)
+//})
+
+async function mapData (net) {
+//	net = await getDataFromSource(net, __dirname + '/sources/php2', {php : 1})
+	net = await getDataFromSource(net, __dirname + '/sources/js2', {js : 1})
+
+	return net
+}
+mapData(net).then(net => {
+  let output = net.run(mapKeywords("require"))
 
   console.log(output)
 })

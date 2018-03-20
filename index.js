@@ -80,4 +80,4 @@ async function mapData () {
 
 const trainingData = fs.readFileSync('training.json')
 net.fromJSON(JSON.parse(trainingData))
-console.log(net.run(mapKeywords(fs.readFileSync('index.js'))))
+console.log(net.run(mapKeywords(fs.readFileSync('index.js', 'utf8'))))

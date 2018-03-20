@@ -50,13 +50,12 @@ const mapKeywords = data => {
     return frequency
 }
 
-async function getDataFromSource(net, source, output) {
+async function getDataFromSource(source, output) {
     const files = await readDir(source)
     const data = await Promise.all(files.map(async fileName => await readFile(source, fileName)))
     const mapped = data.map(datum => { return { input: mapKeywords(datum), output } })
 	//console.log(mapped.map(d => d.input))
-    net.train(mapped)
-    return net
+    return mapped
 }
 
 //getDataFromSource(net, __dirname + '/sources/php2', {php : 1}).then(net => {
@@ -65,14 +64,20 @@ async function getDataFromSource(net, source, output) {
 //  console.log(output)
 //})
 
-async function mapData (net) {
-//	net = await getDataFromSource(net, __dirname + '/sources/php2', {php : 1})
-	net = await getDataFromSource(net, __dirname + '/sources/js2', {js : 1})
+async function mapData () {
+	const php = await getDataFromSource(__dirname + '/sources/php2', {php : 1})
+	const js = await getDataFromSource(__dirname + '/sources/js2', {js : 1})
 
-	return net
+	return php.concat(js)
 }
-mapData(net).then(net => {
-  let output = net.run(mapKeywords("require"))
+//mapData().then(data => {
+//	net.train(data, {log: true, logPeriod: 1})
+//	const jsonData = net.toJSON()
+//	fs.writeFile('training.json', JSON.stringify(jsonData), () => console.log('done'))
+////	let output = net.run(mapKeywords("<?php"))
+////	console.log(output)
+//})
 
-  console.log(output)
-})
+const trainingData = fs.readFileSync('training.json')
+net.fromJSON(JSON.parse(trainingData))
+console.log(net.run(mapKeywords(fs.readFileSync('index.js'))))
